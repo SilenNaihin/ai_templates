@@ -72,7 +72,8 @@ collection.add(
 )"""
 
     cell3_content = f"""\
-{"async_response1 = await async_create_chat_completion(ChatMessages([chat_sequence, chat_sequence2]), return_every=True, response_list=response_list)" if asnc else "response1 = create_chat_completion(chat_sequence)"}
+response_list = []
+{"async_response1 = await async_create_chat_completion(ChatMessages([chat_sequence, chat_sequence2]), print_every=True, response_list=response_list)" if asnc else "response1 = create_chat_completion(chat_sequence)"}
 {db3_content if db else ""}
 {"async_response1" if asnc else "response1"}"""
 

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "aitemplates"
-version = "0.1.1"
-description = "Templates for prompt and vector db engineering and easy to call OpenAI functions with spend tracking and error handling!"
+version = "0.1.3"
+description = "Designed to streamline and simplify your AI workflows, it offers Python typing support, error checking, and a smart usage meter to manage API costs efficiently. Plus, it features built-in examples with ChromaDB and efficient tools for prompt engineering."
 authors = ["Silen Naihin <silen.naihin@gmail.com>"]
 readme = "README.md"
 packages = [{include = "aitemplates"}]

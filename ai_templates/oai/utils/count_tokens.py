@@ -5,7 +5,7 @@ from typing import List, Literal
 
 import tiktoken
 
-from oai.types.base import Message
+from ai_templates.oai.types.base import Message
 
 
 def num_tokens_from_messages(

@@ -1,7 +1,20 @@
-from oai.utils.wrappers import retry_openai_api, metered
 import numpy as np
 from typing import Any, Union
+import os
+from dotenv import load_dotenv
+
 import openai
+
+from ai_templates.oai.utils.wrappers import retry_openai_api, metered
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+if OPENAI_API_KEY is None:
+    raise Exception("API key not found in environment variables")
+
+openai.api_key = OPENAI_API_KEY
 
 Embedding = Union[list[np.float32], np.ndarray[Any, np.dtype[np.float32]]]
 """Embedding vector"""

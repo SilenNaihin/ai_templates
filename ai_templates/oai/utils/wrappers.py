@@ -3,17 +3,22 @@ from __future__ import annotations
 from unittest.mock import patch
 import functools
 import time
+import os
 
-from openai.error import APIError, RateLimitError
+from openai.error import (
+    APIError,
+    RateLimitError,
+    InvalidRequestError,
+    APIConnectionError,
+    Timeout,
+)
+
 import openai
 import openai.api_resources.abstract.engine_api_resource as engine_api_resource
 import openai.util
 from openai.openai_object import OpenAIObject
 
-from oai.ApiManager import ApiManager
-from oai.types.base import ChatSequence, Message
-
-from oai.responses.chat_response import create_chat_completion
+from ai_templates.oai.ApiManager import ApiManager
 
 
 def metered(func):
@@ -40,6 +45,7 @@ def metered(func):
             update_usage_with_response(openai_obj)
         return openai_obj
 
+    @functools.wraps(func)
     def metered_func(*args, **kwargs):
         with patch.object(
             engine_api_resource.util,
@@ -67,6 +73,10 @@ def retry_openai_api(
     def _wrapper(func):
         @functools.wraps(func)
         def _wrapped(*args, **kwargs):
+            if "OPENAI_API_KEY" not in os.environ:
+                raise ValueError(
+                    "OPENAI_API_KEY environment variable must be set when using OpenAI API."
+                )
             user_warned = not warn_user
             num_attempts = num_retries + 1  # +1 for the first attempt
             for attempt in range(1, num_attempts + 1):
@@ -84,7 +94,17 @@ def retry_openai_api(
                               Account. You can read more here: https://docs.agpt.co/setup/#getting-an-api-key"""
                         )
                         user_warned = True
-
+                except InvalidRequestError:
+                    print("OpenAI API Invalid Request: Prompt was filtered")
+                    user_warned = True
+                except APIConnectionError:
+                    print(
+                        "OpenAI API Connection Error: Error Communicating with OpenAI"
+                    )
+                    user_warned = True
+                except Timeout:
+                    print("OpenAI APITimeout Error: OpenAI Timeout")
+                    user_warned = True
                 except APIError as e:
                     if (e.http_status not in [502, 429]) or (attempt == num_attempts):
                         raise
@@ -96,42 +116,3 @@ def retry_openai_api(
         return _wrapped
 
     return _wrapper
-
-
-def call_ai_function(
-    function: str,
-    args: list,
-    description: str,
-    model: str = "gpt-3.5-turbo",
-) -> str:
-    """Call an AI function
-
-    This is a magic function that can do anything with no-code. See
-    https://github.com/Torantulino/AI-Functions for more info.
-
-    Args:
-        function (str): The function to call
-        args (list): The arguments to pass to the function
-        description (str): The description of the function
-        model (str, optional): The model to use. Defaults to None.
-
-    Returns:
-        str: The response from the function
-    """
-    # For each arg, if any are None, convert to "None":
-    args = [str(arg) if arg is not None else "None" for arg in args]
-    # parse args to comma separated string
-    arg_str: str = ", ".join(args)
-
-    prompt = ChatSequence.for_model(
-        model,
-        [
-            Message(
-                "system",
-                f"You are now the following python function: ```# {description}"
-                f"\n{function}```\n\nOnly respond with your `return` value.",
-            ),
-            Message("user", arg_str),
-        ],
-    )
-    return create_chat_completion(prompt=prompt, temperature=0)

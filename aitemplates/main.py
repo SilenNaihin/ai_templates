@@ -67,8 +67,8 @@ chat_sequence = ChatSequence([system_prompt_msg, description_msg, user_query_msg
     db3_content = f"""
 collection.add(
     documents={"async_response1" if asnc else "[response1]"},
-    metadatas=[{{"": ""}}],
-    ids=[""]
+    metadatas=[{"{"": ""}, {"": ""}" if asnc else "{"": ""}"}],
+    ids=[{"'', ''" if asnc else "''"}]
 )"""
 
     cell3_content = f"""\

@@ -43,7 +43,7 @@ aitemplates name_of_notebook -db -asnc
 
 ## Documentation
 
-The package includes example notebooks, which provide comprehensive guides and demonstrations of the functionalities provided by aitemplates. To access these notebooks, clone the repository and navigate to the `/notebooks` directory.
+The package includes example notebooks, which provide comprehensive guides and demonstrations of the functionalities provided by aitemplates. To access these notebooks, access or clone the repository at [https://github.com/SilenNaihin/ai_templates](https://github.com/SilenNaihin/ai_templates) and navigate to the `/notebooks` directory.
 
 Here are the available notebooks:
 
@@ -53,9 +53,9 @@ Here are the available notebooks:
 
 ## Requirements
 
-- Be sure to have a `.env` file with the `OPENAI_API_KEY` defined in the root of your project. AWS env variables are for ChromaDB deployment https://docs.trychroma.com/deployment
-- This library doesn't currently support the use of top-p and text models like `text-davinci-003`. Streaming and logit_bias parameters are not supported
+- Be sure to have a `.env` file with the `OPENAI_API_KEY` defined in the root of your project or your api key defined in some way for OpenAI. AWS env variables are for ChromaDB deployment https://docs.trychroma.com/deployment
+- This library doesn't currently support text models like `text-davinci-003`. Streaming and logit_bias parameters are also not supported
 
 ## Contributing
 
-I'd welcome and appreciate contributions to aitemplates. If you'd like to contribute a feature, please submit a pull request. For bugs, please open a new issue, and I'll address it promptly.
+I welcome and appreciate contributions to aitemplates. If you'd like to contribute a feature, please submit a pull request. For bugs, please open a new issue, and I'll address it promptly.

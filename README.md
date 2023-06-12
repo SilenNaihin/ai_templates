@@ -13,7 +13,13 @@ aitemplates is a Python package designed to simplify and streamline your work wi
 
 ## Installation
 
-Clone the repository and install the package by running `pip install -e .` in the repository directory.
+You can install aitemplates directly from PyPI:
+
+```bash
+pip install aitemplates
+```
+
+To get the latest version of the package, you can also clone the repository and install the package by running `pip install -e .` in the repository directory.
 
 ## Creating Jupyter Notebook Templates
 
@@ -37,7 +43,9 @@ aitemplates name_of_notebook -db -asnc
 
 ## Documentation
 
-The `/notebooks` directory contains various example notebooks that demonstrate the usage of the different classes and methods provided by aitemplates:
+The package includes example notebooks, which provide comprehensive guides and demonstrations of the functionalities provided by aitemplates. To access these notebooks, clone the repository and navigate to the `/notebooks` directory.
+
+Here are the available notebooks:
 
 - `oai_examples.ipynb`: Provides examples for the OpenAI API.
 - `chroma_examples.ipynb`: Demonstrates usage of ChromaDB.

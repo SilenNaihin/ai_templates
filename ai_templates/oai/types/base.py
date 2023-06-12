@@ -5,11 +5,13 @@ import numpy as np
 from math import ceil, floor
 from typing import Literal, TypedDict, Optional, Union, Any
 
+# Embedding vector
 Embedding = Union[list[np.float32], np.ndarray[Any, np.dtype[np.float32]]]
-"""Embedding vector"""
-TText = list[int]
-"""Token array representing text"""
 
+# Token array representing text
+TText = list[int]
+
+# Different roles the chat API takes
 MessageRole = Literal["system", "user", "assistant"]
 
 
@@ -43,12 +45,7 @@ class Message:
 
 @dataclass
 class ModelInfo:
-    """Struct for model information.
-
-    Would be lovely to eventually get this directly from APIs, but needs to be scraped from
-    websites for now.
-
-    """
+    """Struct for model information."""
 
     name: str
     prompt_token_cost: float
@@ -58,19 +55,19 @@ class ModelInfo:
 
 @dataclass
 class ChatModelInfo(ModelInfo):
-    """Struct for chat model information."""
+    "Struct for chat model information."
 
 
 @dataclass
 class EmbeddingModelInfo(ModelInfo):
-    """Struct for embedding model information."""
+    "Struct for embedding model information."
 
     embedding_dimensions: int
 
 
 @dataclass
 class ChatSequence:
-    """Utility container for a chat sequence"""
+    "Utility container for a chat sequence"
 
     messages: list[Message] = field(default_factory=list)
 
@@ -83,6 +80,13 @@ class ChatSequence:
     def __len__(self):
         return len(self.messages)
 
+    def __add__(self, other):
+        if isinstance(other, ChatSequence):
+            # Concatenate the messages lists
+            return ChatSequence(self.messages + other.messages)
+        else:
+            raise TypeError(f"Unsupported operand type for +: {type(other)}")
+
     def append(self, message: Message):
         return self.messages.append(message)
 
@@ -92,21 +96,6 @@ class ChatSequence:
     def insert(self, index: int, *messages: Message):
         for message in reversed(messages):
             self.messages.insert(index, message)
-
-    @classmethod
-    def for_model(
-        cls,
-        model_name: str,
-        messages: list[Message] | ChatSequence = [],
-    ):
-        from ai_templates.oai.types.models import OPEN_AI_CHAT_MODELS
-
-        if not model_name in OPEN_AI_CHAT_MODELS:
-            raise ValueError(f"Unknown chat model '{model_name}'")
-
-        return ChatSequence(
-            model=OPEN_AI_CHAT_MODELS[model_name], messages=list(messages)
-        )
 
     def add(self, message_role: MessageRole, content: str):
         self.messages.append(Message(message_role, content))
@@ -120,7 +109,11 @@ class ChatSequence:
     def raw(self) -> list[MessageDict]:
         return [m.raw() for m in self.messages]
 
+    def expand(self) -> list[Message]:
+        return [m for m in self.messages]
+
     def dump(self) -> str:
+        "Return all information stored in the dataclass as a string"
         SEPARATOR_LENGTH = 42
 
         def separator(text: str):
@@ -139,13 +132,13 @@ class ChatSequence:
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> ChatSequence:
-        """Create a chat messages object from a dictionary."""
+        "Create a chat messages object from a dictionary."
         return ChatSequence(
             [Message(role=x["role"], content=x["content"]) for x in data["messages"]]
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert a chat messages object to a dictionary."""
+        "Convert a chat messages object to a dictionary."
         return {
             "messages": [
                 {
@@ -156,20 +149,13 @@ class ChatSequence:
             ]
         }
 
-    def __add__(self, other):
-        if isinstance(other, ChatSequence):
-            # Concatenate the messages lists
-            return ChatSequence(self.messages + other.messages)
-        else:
-            raise TypeError(f"Unsupported operand type for +: {type(other)}")
-
 
 @dataclass(frozen=True)
 class ChatMessages:
     """A set of prompts to ask.
 
     Attributes:
-        messages: A set of messages for the chat turn
+        chat_sequences: A set of message sequences, each represents a prompt
     """
 
     chat_sequences: list[ChatSequence]

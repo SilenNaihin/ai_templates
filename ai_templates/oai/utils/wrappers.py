@@ -4,6 +4,8 @@ from unittest.mock import patch
 import functools
 import time
 import os
+import logging
+
 
 from openai.error import (
     APIError,
@@ -22,24 +24,34 @@ from ai_templates.oai.ApiManager import ApiManager
 
 
 def metered(func):
-    """Adds ApiManager metering to functions which make OpenAI API calls"""
+    """Adds ApiManager metering to functions which make OpenAI API calls.
+
+    Args:
+        func (Callable): The function to meter.
+
+    Returns:
+        Callable: The metered function.
+    """
     api_manager = ApiManager()
 
     openai_obj_processor = openai.util.convert_to_openai_object
 
     def update_usage_with_response(response: OpenAIObject):
+        """Updates the usage statistics based on the response."""
         try:
             usage = response.usage
-            print(f"Reported usage from call to model {response.model}: {usage}")
             api_manager.update_cost(
                 response.usage.prompt_tokens,
                 response.usage.completion_tokens if "completion_tokens" in usage else 0,
                 response.model,
             )
         except Exception as err:
-            print(f"Failed to update API costs: {err.__class__.__name__}: {err}")
+            logging.error(
+                f"Failed to update API costs: {err.__class__.__name__}: {err}"
+            )
 
     def metering_wrapper(*args, **kwargs):
+        """Wraps the function in a metering logic."""
         openai_obj = openai_obj_processor(*args, **kwargs)
         if isinstance(openai_obj, OpenAIObject) and "usage" in openai_obj:
             update_usage_with_response(openai_obj)
@@ -47,6 +59,7 @@ def metered(func):
 
     @functools.wraps(func)
     def metered_func(*args, **kwargs):
+        """A function that runs the original function with metering applied."""
         with patch.object(
             engine_api_resource.util,
             "convert_to_openai_object",
@@ -62,12 +75,17 @@ def retry_openai_api(
     backoff_base: float = 2.0,
     warn_user: bool = True,
 ):
-    """Retry an OpenAI API call.
+    """Decorate a function to retry OpenAI API call when it fails.
+
+    This function uses exponential backoff strategy for retries.
 
     Args:
-        num_retries int: Number of retries. Defaults to 10.
-        backoff_base float: Base for exponential backoff. Defaults to 2.
-        warn_user bool: Whether to warn the user. Defaults to True.
+        num_retries (int, optional): Number of retries. Defaults to 10.
+        backoff_base (float, optional): Base for exponential backoff. Defaults to 2.0.
+        warn_user (bool, optional): Whether to warn the user. Defaults to True.
+
+    Returns:
+        Callable: The decorated function.
     """
 
     def _wrapper(func):
@@ -87,30 +105,30 @@ def retry_openai_api(
                     if attempt == num_attempts:
                         raise
 
-                    print("Error: Reached rate limit, passing...")
+                    logging.error("Error: Reached rate limit, passing...")
                     if not user_warned:
-                        print(
+                        logging.warning(
                             """Please double check that you have setup a paid OpenAI API 
                               Account. You can read more here: https://docs.agpt.co/setup/#getting-an-api-key"""
                         )
                         user_warned = True
                 except InvalidRequestError:
-                    print("OpenAI API Invalid Request: Prompt was filtered")
+                    logging.error("OpenAI API Invalid Request: Prompt was filtered")
                     user_warned = True
                 except APIConnectionError:
-                    print(
+                    logging.error(
                         "OpenAI API Connection Error: Error Communicating with OpenAI"
                     )
                     user_warned = True
                 except Timeout:
-                    print("OpenAI APITimeout Error: OpenAI Timeout")
+                    logging.error("OpenAI APITimeout Error: OpenAI Timeout")
                     user_warned = True
                 except APIError as e:
                     if (e.http_status not in [502, 429]) or (attempt == num_attempts):
                         raise
 
                 backoff = backoff_base ** (attempt + 2)
-                print(f"Error: API Bad gateway. Waiting {backoff} seconds...")
+                logging.error(f"Error: API Bad gateway. Waiting {backoff} seconds...")
                 time.sleep(backoff)
 
         return _wrapped

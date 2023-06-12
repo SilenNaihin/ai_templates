@@ -26,20 +26,22 @@ TText = list[int]
 @retry_openai_api()
 def get_embedding(
     embed: Union[str, TText, list[str], list[TText]],
-    openai_api_key: Union[str, None] = None,
     model: str = "text-embedding-ada-002",
 ) -> Union[Embedding, list[Embedding]]:
     """Get an embedding from the ada model.
 
     Args:
-        input: Input text to get embeddings for, encoded as a string or array of tokens.
+        embed: Input text to get embeddings for, encoded as a string or array of tokens.
             Multiple inputs may be given as a list of strings or token arrays.
+        openai_api_key: OpenAI API key.
+        model: The OpenAI embedding model to use. Defaults to "text-embedding-ada-002".
 
     Returns:
         List[float]: The embedding.
     """
     multiple = isinstance(embed, list) and all(not isinstance(i, int) for i in input)
 
+    # clean the input string
     if isinstance(embed, str):
         embed = embed.replace("\n", " ")
     elif multiple and isinstance(embed[0], str):
@@ -47,12 +49,12 @@ def get_embedding(
 
     embeddings = openai.Embedding.create(
         input=embed,
-        api_key=openai_api_key,
         model=model,
     ).data
 
     if not multiple:
         return embeddings[0]["embedding"]
 
+    # sort the multiple return embeddings in their correct order
     embeddings = sorted(embeddings, key=lambda x: x["index"])
     return [d["embedding"] for d in embeddings]

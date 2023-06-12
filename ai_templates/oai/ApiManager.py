@@ -1,6 +1,6 @@
-from __future__ import annotations
+import logging
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import openai
 from openai import Model
@@ -11,6 +11,8 @@ from ai_templates.oai.types.base import TText
 
 
 class ApiManager(metaclass=Singleton):
+    "Middleman class for tracking completion tokens and cost of API calls"
+
     def __init__(self):
         self.total_prompt_tokens = 0
         self.total_completion_tokens = 0
@@ -33,7 +35,6 @@ class ApiManager(metaclass=Singleton):
         model (str): The model used for the API call.
         """
         # if v2 is appended on to the end like with ada-embedding
-
         model = model[:-3] if model.endswith("-v2") else model
 
         self.total_prompt_tokens += prompt_tokens
@@ -41,8 +42,8 @@ class ApiManager(metaclass=Singleton):
         self.total_cost += (
             prompt_tokens * OPEN_AI_MODELS[model].prompt_token_cost
             + completion_tokens * OPEN_AI_MODELS[model].completion_token_cost
-        ) / 100  # convert to dollars from cents
-        print(f"Total running cost: ${self.total_cost:.3f}")
+        ) / 1000
+        logging.info(f"Total running cost: ${self.total_cost:.3f}")
 
     def check_model(self, model: str) -> str:
         """Check if model specified is available for use. If not, return gpt-3.5-turbo."""
@@ -51,7 +52,7 @@ class ApiManager(metaclass=Singleton):
         if any(model in m["id"] for m in models):
             return model
 
-        print("You do not have access to {model}.")
+        logging.warning("You do not have access to {model}.")
         return "gpt-3.5-turbo"
 
     def get_total_prompt_tokens(self):

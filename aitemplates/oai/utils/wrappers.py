@@ -20,7 +20,7 @@ import openai.api_resources.abstract.engine_api_resource as engine_api_resource
 import openai.util
 from openai.openai_object import OpenAIObject
 
-from ai_templates.oai.ApiManager import ApiManager
+from aitemplates.oai.ApiManager import ApiManager
 
 
 def metered(func):

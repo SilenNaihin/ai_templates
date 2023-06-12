@@ -1,4 +1,4 @@
-from ai_templates.oai.utils.wrappers import retry_openai_api, metered
+from aitemplates.oai.utils.wrappers import retry_openai_api, metered
 import logging
 import os
 from dotenv import load_dotenv
@@ -11,8 +11,8 @@ import openai.error
 from aiohttp import ClientSession
 from tqdm.asyncio import tqdm_asyncio
 
-from ai_templates.oai.types.base import MessageDict, ChatMessages
-from ai_templates.oai.ApiManager import ApiManager
+from aitemplates.oai.types.base import MessageDict, ChatMessages
+from aitemplates.oai.ApiManager import ApiManager
 
 load_dotenv()
 

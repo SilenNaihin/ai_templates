@@ -102,7 +102,7 @@ class ChatSequence:
 
     @property
     def token_length(self):
-        from ai_templates.oai.utils.count_tokens import num_tokens_from_messages
+        from aitemplates.oai.utils.count_tokens import num_tokens_from_messages
 
         return num_tokens_from_messages(self.messages, self.model.name)
 

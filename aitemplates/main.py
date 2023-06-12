@@ -42,8 +42,8 @@ collection = chroma_client.create_collection(name="", embedding_function=embedde
 
     # Create first cell
     cell1_content = f"""\
-from ai_templates.oai.responses. {"async_chat_response import async_create_chat_completion" if asnc else "chat_response import create_chat_completion"}
-from ai_templates.oai.types.base import ChatSequence, Message{", ChatMessages" if asnc else ""}
+from aitemplates.oai.responses. {"async_chat_response import async_create_chat_completion" if asnc else "chat_response import create_chat_completion"}
+from aitemplates.oai.types.base import ChatSequence, Message{", ChatMessages" if asnc else ""}
 {db1_content if db else ""}
     """
     cell1 = nbf.v4.new_code_cell(cell1_content)

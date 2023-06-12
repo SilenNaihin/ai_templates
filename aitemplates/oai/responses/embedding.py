@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 import openai
 
-from ai_templates.oai.utils.wrappers import retry_openai_api, metered
+from aitemplates.oai.utils.wrappers import retry_openai_api, metered
 
 load_dotenv()
 

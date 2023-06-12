@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 
 import openai
 
-from ai_templates.oai.utils.wrappers import retry_openai_api, metered
-from ai_templates.oai.types.base import ChatSequence
+from aitemplates.oai.utils.wrappers import retry_openai_api, metered
+from aitemplates.oai.types.base import ChatSequence
 
 load_dotenv()
 

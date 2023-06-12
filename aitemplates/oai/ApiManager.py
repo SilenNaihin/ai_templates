@@ -5,9 +5,9 @@ from typing import List, Optional
 import openai
 from openai import Model
 
-from ai_templates.oai.types.models import OPEN_AI_MODELS
-from ai_templates.oai.types.Singleton import Singleton
-from ai_templates.oai.types.base import TText
+from aitemplates.oai.types.models import OPEN_AI_MODELS
+from aitemplates.oai.types.Singleton import Singleton
+from aitemplates.oai.types.base import TText
 
 
 class ApiManager(metaclass=Singleton):

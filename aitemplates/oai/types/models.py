@@ -1,5 +1,5 @@
 from typing import Union
-from ai_templates.oai.types.base import ChatModelInfo, EmbeddingModelInfo
+from aitemplates.oai.types.base import ChatModelInfo, EmbeddingModelInfo
 
 OPEN_AI_CHAT_MODELS = {
     info.name: info

@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "ai-templates"
+name = "aitemplates"
 version = "0.1.0"
 description = "Templates for prompt and vector db engineering and easy to call OpenAI functions with spend tracking and error handling!"
 authors = ["Silen Naihin <silen.naihin@gmail.com>"]
 readme = "README.md"
-packages = [{include = "ai_templates"}]
+packages = [{include = "aitemplates"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -21,4 +21,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-ai_templates = 'ai_templates.main:main'
+aitemplates = 'aitemplates.main:main'

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aitemplates"
-version = "0.1.0"
+version = "0.1.1"
 description = "Templates for prompt and vector db engineering and easy to call OpenAI functions with spend tracking and error handling!"
 authors = ["Silen Naihin <silen.naihin@gmail.com>"]
 readme = "README.md"

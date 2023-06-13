@@ -59,3 +59,8 @@ Here are the available notebooks:
 ## Contributing
 
 I welcome and appreciate contributions to aitemplates. If you'd like to contribute a feature, please submit a pull request. For bugs, please open a new issue, and I'll address it promptly.
+
+## Future?
+- https://twitter.com/ItakGol/status/1668336193270865921
+- Support for other LLMs
+- Support for other dbs

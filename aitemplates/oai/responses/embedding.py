@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 
 import openai
 
-from aitemplates.oai.utils.wrappers import retry_openai_api, metered
+from aitemplates.oai.utils.wrappers import retry_openai_api
+from aitemplates.oai.ApiManager import ApiManager
 
 load_dotenv()
 
@@ -21,8 +22,6 @@ Embedding = Union[list[np.float32], np.ndarray[Any, np.dtype[np.float32]]]
 TText = list[int]
 """Token array representing text"""
 
-
-@metered
 @retry_openai_api()
 def get_embedding(
     embed: Union[str, TText, list[str], list[TText]],
@@ -39,6 +38,7 @@ def get_embedding(
     Returns:
         List[float]: The embedding.
     """
+    api_manager = ApiManager()
     multiple = isinstance(embed, list) and all(not isinstance(i, int) for i in input)
 
     # clean the input string
@@ -50,11 +50,17 @@ def get_embedding(
     embeddings = openai.Embedding.create(
         input=embed,
         model=model,
-    ).data
+    )
+    
+    api_manager.update_cost(
+        embeddings.usage.prompt_tokens,
+        0,
+        embeddings.model
+    )
 
     if not multiple:
-        return embeddings[0]["embedding"]
+        return embeddings.data[0]["embedding"]
 
     # sort the multiple return embeddings in their correct order
-    embeddings = sorted(embeddings, key=lambda x: x["index"])
-    return [d["embedding"] for d in embeddings]
+    embeddings = sorted(embeddings.data, key=lambda x: x["index"])
+    return [d["embedding"] for d in embeddings.data]

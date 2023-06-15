@@ -1,4 +1,4 @@
-from aitemplates.oai.utils.wrappers import retry_openai_api, metered
+from aitemplates.oai.utils.wrappers import retry_openai_api
 import logging
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,8 @@ import openai.error
 from aiohttp import ClientSession
 from tqdm.asyncio import tqdm_asyncio
 
-from aitemplates.oai.types.base import MessageDict, ChatMessages
+from aitemplates.oai.types.base import ResponseDict
+from aitemplates.oai.types.chat import ChatConversation, FunctionsAvailable, ChatPair
 from aitemplates.oai.ApiManager import ApiManager
 
 load_dotenv()
@@ -26,16 +27,9 @@ openai.api_key = OPENAI_API_KEY
 
 @retry_openai_api()
 async def _throttled_acreate_chat_completion(
-    messages: list[MessageDict],
+    chat_pair: ChatPair,
     limiter: aiolimiter.AsyncLimiter,
-    temperature: Optional[float] = 0,
-    model: Optional[str] = "gpt-3.5-turbo",
-    max_tokens: Optional[int] = None,
-    top_p: Optional[float] = 1,
-    n: Optional[int] = 1,
-    stop: Optional[str] = None,
-    presence_penalty: Optional[float] = 0,
-    frequency_penalty: Optional[float] = 0,
+    **kwargs
 ) -> Any:
     """Create a throttled chat completion using the OpenAI API.
 
@@ -57,38 +51,32 @@ async def _throttled_acreate_chat_completion(
         Any: The response from the chat completion.
     """
     async with limiter:
-        return await openai.ChatCompletion.acreate(
-            model=model,
-            messages=messages,
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            n=n,
-            stop=stop,
-            presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
+        response = await openai.ChatCompletion.acreate(
+            messages=chat_pair.prompt_raw,
+            **kwargs
         )
+        return chat_pair, response
 
 
 async def async_create_chat_completion(
-    parallel_calls: ChatMessages,
+    parallel_calls: ChatConversation,
     model: str = "gpt-3.5-turbo",
     temperature: float = 0,
     max_tokens: Union[int, None] = None,
     print_every: int = False,
     keep_order: bool = False,
     requests_per_minute: int = 300,
-    response_list: Optional[List[str]] = None,
     top_p: Optional[float] = 1,
     n: Optional[int] = 1,
     stop: Optional[str] = None,
     presence_penalty: Optional[float] = 0,
     frequency_penalty: Optional[float] = 0,
-) -> list[str]:
+    functions: Optional[FunctionsAvailable] = None
+) -> ChatConversation:
     """Generate from OpenAI Chat Completion API asynchronously.
 
     Args:
-        parallel_calls (ChatMessages): List of full prompts to generate from.
+        parallel_calls (ChatConversation): List of full prompts to generate from.
         model (str, optional): Model configuration. Defaults to "gpt-3.5-turbo".
         temperature (float, optional): Temperature to use. Defaults to 0.
         max_tokens (Union[int, None], optional): Maximum number of tokens to generate. Defaults to None.
@@ -103,27 +91,35 @@ async def async_create_chat_completion(
         frequency_penalty (float, optional): The frequency penalty to use. Defaults to 0.
 
     Returns:
-        list[str]: List of generated responses.
+        ChatConversation: List of generated responses and previous responses.
     """
     if keep_order and print_every:
-        logging.warning("print_every do nothing since keep_order is True")
+        logging.warning("print_every will do nothing since keep_order is True")
     api_manager = ApiManager()
     openai.aiosession.set(ClientSession())
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
+    
+    kwargs = {
+        "model": model,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "top_p": top_p,
+        "n": n,
+        "stop": stop,
+        "presence_penalty": presence_penalty,
+        "frequency_penalty": frequency_penalty,
+    }
+    
+    if functions:
+        kwargs["functions"] = functions
+    
     async_responses = [
         _throttled_acreate_chat_completion(
-            model=model,
-            messages=chat_sequence.raw(),
-            temperature=temperature,
-            max_tokens=max_tokens,
-            top_p=top_p,
-            n=n,
-            stop=stop,
-            presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
+            **kwargs,
             limiter=limiter,
+            chat_pair=chat_pair,
         )
-        for chat_sequence in parallel_calls.chat_sequences
+        for chat_pair in parallel_calls.conversation_history
     ]
 
     responses = []
@@ -132,40 +128,40 @@ async def async_create_chat_completion(
 
     if keep_order:
         # Keep the order of responses same as input prompts
-        responses = await tqdm_asyncio.gather(*async_responses)
+        collect_responses = await tqdm_asyncio.gather(*async_responses)
 
         # Update the cost associated with this response in the API manager
-        for response in responses:
-            responses.append(response.choices[0].message.content)
-            prompt_tokens += response.usage.prompt_tokens
-            completion_tokens += response.usage.completion_tokens
+        for i, response in enumerate(collect_responses):
+            chat_pair, openai_response = response
+            responses.append(chat_pair.update_response(ResponseDict(openai_response)))
+            prompt_tokens += openai_response.usage.prompt_tokens
+            completion_tokens += openai_response.usage.completion_tokens
 
-        api_manager.update_cost(
-            prompt_tokens,
-            completion_tokens,
-            responses[0].model,
-        )
+            if i == len(collect_responses) - 1:
+                api_manager.update_cost(
+                    prompt_tokens,
+                    completion_tokens,
+                    openai_response.model,
+                )
     else:
         # Without order
         for future in tqdm_asyncio.as_completed(async_responses):
-            response = await future
+            collect_response = await future
+            
+            chat_pair, openai_response = collect_response
 
             # Update the cost associated with this response in the API manager
             api_manager.update_cost(
-                response.usage.prompt_tokens,
-                response.usage.completion_tokens,
-                response.model,
+                openai_response.usage.prompt_tokens,
+                openai_response.usage.completion_tokens,
+                openai_response.model,
             )
 
-            response_text = response.choices[0].message.content
-            responses.append(response_text)
+            response_text = openai_response.choices[0].message.content
+            responses.append(chat_pair.update_response(ResponseDict(openai_response)))
             if print_every:
-                logging.info(response_text + "\n")
-
-            # Check if a list was passed and add the response_text to it
-            if response_list is not None:
-                response_list.append(response_text)
+                print(response_text + "\n")
 
     # Close the session
     await openai.aiosession.get().close()  # type: ignore
-    return responses
+    return parallel_calls.fill_conversation(responses)

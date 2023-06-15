@@ -7,7 +7,6 @@ from openai import Model
 
 from aitemplates.oai.types.models import OPEN_AI_MODELS
 from aitemplates.oai.types.Singleton import Singleton
-from aitemplates.oai.types.base import TText
 
 
 class ApiManager(metaclass=Singleton):
@@ -43,7 +42,7 @@ class ApiManager(metaclass=Singleton):
             prompt_tokens * OPEN_AI_MODELS[model].prompt_token_cost
             + completion_tokens * OPEN_AI_MODELS[model].completion_token_cost
         ) / 1000
-        logging.info(f"Total running cost: ${self.total_cost:.3f}")
+        print(f"Total running cost: ${self.total_cost:.3f}")
 
     def check_model(self, model: str) -> str:
         """Check if model specified is available for use. If not, return gpt-3.5-turbo."""

@@ -52,12 +52,13 @@ def create_chat_completion(
     Returns:
         Any: The response from the chat completion.
     """
+    kwarg_messages = None
     
     # we set it to the last sequence which the response is None
     if isinstance(messages, ChatConversation):
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
     elif isinstance(messages, Message):
-        messages=ChatSequence([Message])
+        messages=ChatSequence([messages])
     else: 
         kwarg_messages = messages.raw()
         

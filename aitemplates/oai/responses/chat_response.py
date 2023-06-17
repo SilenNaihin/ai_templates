@@ -66,6 +66,7 @@ def create_chat_completion(
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
     elif isinstance(messages, Message):
         kwarg_messages = ChatSequence([messages])
+        messages = ChatSequence([messages])
     else:
         kwarg_messages = messages.raw()
 

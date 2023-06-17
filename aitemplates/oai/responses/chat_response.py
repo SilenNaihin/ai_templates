@@ -6,9 +6,16 @@ import openai
 from aitemplates.oai.ApiManager import ApiManager
 
 from aitemplates.oai.utils.wrappers import retry_openai_api
-from aitemplates.oai.types.chat import ChatSequence, FunctionsAvailable, ChatConversation, Message
+from aitemplates.oai.types.chat import (
+    ChatSequence,
+    FunctionsAvailable,
+    ChatConversation,
+    Message,
+)
 
-dotenv_path = os.path.join(os.getcwd(), '.env')  # get the path to .env file in current working directory
+dotenv_path = os.path.join(
+    os.getcwd(), ".env"
+)  # get the path to .env file in current working directory
 load_dotenv(dotenv_path)  # load environment variables from the .env file
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -53,15 +60,15 @@ def create_chat_completion(
         Any: The response from the chat completion.
     """
     kwarg_messages = None
-    
+
     # we set it to the last sequence which the response is None
     if isinstance(messages, ChatConversation):
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
     elif isinstance(messages, Message):
-        messages=ChatSequence([messages])
-    else: 
+        kwarg_messages = ChatSequence([messages])
+    else:
         kwarg_messages = messages.raw()
-        
+
     api_manager = ApiManager()
     kwargs = {
         "model": model,
@@ -74,49 +81,51 @@ def create_chat_completion(
         "presence_penalty": presence_penalty,
         "frequency_penalty": frequency_penalty,
     }
-    
+
     function_pairs = None
-    
+
     # if it's a ChatSequence being passed in
     if messages.function_pairs:
         kwargs["functions"] = messages.function_pairs.get_function_defs()
         function_pairs = messages.function_pairs
-    elif functions: 
+    elif functions:
         function_pairs = functions
         # if you're passing in global functions from a ChatConversation sequential call
         if "functions" in kwargs:
-            # add functions not in the existing functions array 
+            # add functions not in the existing functions array
             existing_function_names = {func["name"] for func in kwargs["functions"]}
-            new_functions = [func for func in functions.get_function_defs() if func["name"] not in existing_function_names]
+            new_functions = [
+                func
+                for func in functions.get_function_defs()
+                if func["name"] not in existing_function_names
+            ]
             kwargs["functions"].extend(new_functions)
         else:
             kwargs["functions"] = functions.get_function_defs()
-    
+
     if function_call:
         kwargs["function_call"] = function_call
-    
-    response = openai.ChatCompletion.create(
-        **kwargs
-    )
-    
+
+    response = openai.ChatCompletion.create(**kwargs)
+
     function_result = None
-    
+
     if response.choices[0].message.get("function_call"):
-        function_result = FunctionsAvailable.execute_function_call(response.choices[0].message.function_call, function_pairs)
-    
+        function_result = FunctionsAvailable.execute_function_call(
+            response.choices[0].message.function_call, function_pairs
+        )
+
     api_manager.update_cost(
-        response.usage.prompt_tokens,
-        response.usage.completion_tokens,
-        response.model
+        response.usage.prompt_tokens, response.usage.completion_tokens, response.model
     )
-    
+
     if isinstance(messages, ChatConversation):
         if function_result:
             # we want to set the content to the function_result
             messages.conversation_history[-1].update_response(response, function_result)
         else:
             messages.conversation_history[-1].update_response(response)
-    
+
     if send_object:
         return response, function_result if function_result else response
     elif n and n > 1:

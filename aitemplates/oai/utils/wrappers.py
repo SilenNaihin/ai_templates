@@ -59,8 +59,13 @@ def retry_openai_api(
                         )
                         user_warned = True
                 except InvalidRequestError as e:
-                    logging.error(f"OpenAI API Invalid Request: {e}")
-                    user_warned = True
+                    if 'not exist' in str(e):
+                        logging.warning(f"Requested model does not exist. Using default model gpt-3.5-turbo-0613.")
+                        kwargs['model'] = "gpt-3.5-turbo-0613"
+                        return func(*args, **kwargs)
+                    else:
+                        logging.error(f"OpenAI API Invalid Request: {e}")
+                        user_warned = True
                 except APIConnectionError as e:
                     logging.error(
                         f"OpenAI API Connection Error: {e}"

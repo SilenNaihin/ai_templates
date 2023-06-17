@@ -1,3 +1,5 @@
+##### Library is up to date with function calling. Reference oai_examples.ipynb to see functionality. All other docs including ipynb, templates, readme still need to be updated
+
 # aitemplates
 
 aitemplates is a Python package designed to simplify and streamline your work with the OpenAI API. It provides Python typing support, error checking, and a usage meter to help manage API costs. Additionally, aitemplates offers built-in examples of using ChromaDB and tools for efficient prompt engineering with OpenAI.
@@ -61,6 +63,7 @@ Here are the available notebooks:
 I welcome and appreciate contributions to aitemplates. If you'd like to contribute a feature, please submit a pull request. For bugs, please open a new issue, and I'll address it promptly.
 
 ## Future?
+
 - https://twitter.com/ItakGol/status/1668336193270865921
 - Support for other LLMs
 - Support for other dbs

@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Union, Tuple, Any, Callable, cast
+from aitemplates.oai.types.base import FunctionCall
 
 from jsonschema import validate
     
@@ -81,3 +82,18 @@ class FunctionsAvailable:
             self.function_pairs.extend(function_pairs.function_pairs)
         else:
             self.function_pairs.extend(function_pairs)
+    
+    @staticmethod
+    def execute_function_call(message: FunctionCall, functions: 'FunctionsAvailable') -> Any:
+        function_name = message.name
+        function_args = eval(message.arguments)
+        
+        # get the correct function
+        target_function = next((fp.function for fp in functions.function_pairs if fp.definition["name"] == function_name), None)
+        
+        if target_function:
+            results = target_function(**function_args)
+        else:
+            results = f"Error: function {function_name} does not exist"
+            
+        return results

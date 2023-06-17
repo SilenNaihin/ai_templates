@@ -26,13 +26,36 @@ class ResponseDict:
     model: str
     created: str
     
-    def __init__(self, response: dict):
+    def __init__(self, response: dict, function_response: Any = None):
         choice = response["choices"][0]  # Getting the first choice
         self.index = choice["index"]
-        self.message = Message(**choice["message"])
+        if function_response:
+            self.message = Message("function", function_response)
+        else:
+            self.message = Message(**choice["message"])
         self.finish_reason = choice["finish_reason"]
         self.model = response["model"]
         self.created = response["created"]
+        
+    def __getitem__(self, i: int):
+        return self.message
+    
+    @staticmethod
+    def convert_to_response_dict(response: Union[dict, tuple]) -> Union['ResponseDict', (ResponseDict, Any)]:
+        if response is not None and isinstance(response, tuple):
+            # if it's a tuple that means a function was called
+            return (ResponseDict(response[0]), response[1])
+        else: 
+            return ResponseDict(response)
+    
+    @staticmethod
+    def convert_to_raw(response_dict: ResponseDict) -> MessageDict:
+        if response_dict is not None and isinstance(response_dict, tuple):
+            # if it's a tuple that means a function was called
+            return (response_dict.message.raw(), response_dict[1])
+        else: 
+            return response_dict.message.raw()
+        
         
 
 
@@ -43,12 +66,17 @@ class UsageDict(TypedDict):
 
 
 @dataclass
+class FunctionCall:
+    name: str
+    arguments: str
+
+@dataclass
 class Message:
     """OpenAI Message object containing a role and the message content"""
 
     role: MessageRole
     content: str
-    function_call: Optional[object] = None
+    function_call: Optional[FunctionCall] = None
 
     def raw(self) -> MessageDict:
         return {"role": self.role, "content": self.content}

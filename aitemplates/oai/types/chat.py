@@ -106,7 +106,9 @@ class ChatSequence:
 class ChatPair:
     chat_pair: Tuple[ChatSequence, Optional[ResponseDict]]
     
-    def __init__(self, chat_sequence: ChatSequence, response: Optional[ResponseDict]) -> None:
+    def __init__(self, chat_sequence: ChatSequence, response: Optional[ResponseDict] = None) -> None:
+        if response is not None and not isinstance(response, ResponseDict):
+            response = ResponseDict(response)
         self.chat_pair = (chat_sequence, response)
     
     def __getitem__(self, i: int) -> Union[ChatSequence, Optional[ResponseDict]]:
@@ -128,7 +130,12 @@ class ChatPair:
         self.chat_pair = (new_prompt, self.chat_pair[1])
         return self
 
-    def update_response(self, new_response: ResponseDict) -> 'ChatPair':
+    def update_response(self, new_response: Union[ResponseDict, Any], function_response: Any = None) -> 'ChatPair':
+        if not isinstance(new_response, ResponseDict):
+            if function_response:
+                new_response = ResponseDict(new_response, function_response) 
+            else:
+                new_response = ResponseDict(new_response)
         self.chat_pair = (self.chat_pair[0], new_response)
         return self
     
@@ -183,32 +190,12 @@ class ChatConversation:
         """
         return ChatConversation(self.conversation_history + other.conversation_history)
 
-    def add_pair(self, message: ChatSequence, response: ResponseDict):
+    def add_pair(self, message: ChatSequence, response: Optional[ResponseDict] = None):
         self.conversation_history.append(ChatPair(message, response))
     
     def fill_conversation(self, updated_history: List[ChatPair]) -> 'ChatConversation':
         self.conversation_history = updated_history   
         return self  
-    
-    def sequential_complete(self, **kwargs) -> None:
-        
-        # this will override existing values for the responses
-        from aitemplates.oai.responses.chat_response import create_chat_completion
-        
-        for i in range(len(self.conversation_history)):
-            chat_pair = self.conversation_history[i]
-
-            # Generate a response for the current ChatSequence
-            openai_response = create_chat_completion(chat_pair.prompt, send_object=True, **kwargs)
-
-            # Update the response in the current ChatPair
-            chat_pair.update_response(ResponseDict(openai_response))
-
-            print(chat_pair.response)
-            # If this is not the last ChatPair, append the response message to the next ChatSequence
-            if i + 1 < len(self.conversation_history):
-                next_chat_sequence = self.conversation_history[i + 1].prompt
-                next_chat_sequence.append(chat_pair.response.message)
 
     def display_conversation(self):
         role_to_color = {
@@ -242,9 +229,5 @@ class ChatConversation:
                     )
                 )
                 
-            
-
-            response_message = response.message.content
-            
-            print(response_message, role_to_color[response_message["role"]])
-            print(colored(f"Response: {response_message} \n\n", role_to_color[response_message["role"]]))
+            response_message = response.message
+            print(colored(f"Response: {response_message.content} \n\n", role_to_color[response_message.role]))

@@ -6,7 +6,7 @@ import openai
 from aitemplates.oai.ApiManager import ApiManager
 
 from aitemplates.oai.utils.wrappers import retry_openai_api
-from aitemplates.oai.types.chat import ChatSequence, FunctionsAvailable, ChatConversation
+from aitemplates.oai.types.chat import ChatSequence, FunctionsAvailable, ChatConversation, Message
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ openai.api_key = OPENAI_API_KEY
 
 @retry_openai_api()
 def create_chat_completion(
-    messages: Union[ChatSequence, ChatConversation],
+    messages: Union[ChatSequence, ChatConversation, Message],
     model: str = "gpt-3.5-turbo-0613",
     temperature: Optional[float] = 0,
     max_tokens: Optional[int] = None,
@@ -55,6 +55,8 @@ def create_chat_completion(
     # we set it to the last sequence which the response is None
     if isinstance(messages, ChatConversation):
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
+    elif isinstance(messages, Message):
+        messages=ChatSequence([Message])
     else: 
         kwarg_messages = messages.raw()
         

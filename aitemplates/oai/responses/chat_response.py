@@ -8,7 +8,8 @@ from aitemplates.oai.ApiManager import ApiManager
 from aitemplates.oai.utils.wrappers import retry_openai_api
 from aitemplates.oai.types.chat import ChatSequence, FunctionsAvailable, ChatConversation, Message
 
-load_dotenv()
+dotenv_path = os.path.join(os.getcwd(), '.env')  # get the path to .env file in current working directory
+load_dotenv(dotenv_path)  # load environment variables from the .env file
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 

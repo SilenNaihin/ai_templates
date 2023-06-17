@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aitemplates"
-version = "0.1.5"
+version = "0.1.6"
 description = "Designed to streamline and simplify your AI workflows, it offers Python typing support, error checking, and a smart usage meter to manage API costs efficiently. Plus, it features built-in examples with ChromaDB and efficient tools for prompt engineering."
 authors = ["Silen Naihin <silen.naihin@gmail.com>"]
 readme = "README.md"
@@ -16,6 +16,7 @@ nbformat = "^5.9.0"
 argparse = "^1.4.0"
 pydantic = "^1.10.9"
 jsonschema = "^4.17.3"
+termcolor = "^2.3.0"
 
 
 [build-system]

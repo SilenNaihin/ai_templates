@@ -8,7 +8,7 @@ aitemplates is a Python package designed to simplify and streamline your work wi
 - **Error Checking**: Automatically catch and handle errors during API calls.
 - **Usage Meter**: Keep track of your OpenAI API usage with a built-in metering system.
 - **ChromaDB Integration**: Work directly with ChromaDB from the aitemplates interface.
-- **Asynchronous Chat Completions**: Use the `-asnc` flag to run asynchronous chat completions. The built-in `print_every` option prints every time a completion finishes in parallel. If a list is passed into the `response_list` attribute, it updates that list as completions finish. If you'd like to maintain the order of your completions, pass in the `keep_order` boolean as `True`.
+- **Asynchronous Chat Completions**: Use the `-asnc` flag to run asynchronous chat completions. The built-in `print_every` option prints every time a completion finishes in parallel. If you'd like to maintain the order of your completions, pass in the `keep_order` boolean as `True`.
 - **Prompt Engineering Examples**: Get started quickly with included examples of prompt engineering techniques.
 - **Python Typing Support**: Enjoy the benefits of Python's dynamic typing system while using OpenAI API.
 

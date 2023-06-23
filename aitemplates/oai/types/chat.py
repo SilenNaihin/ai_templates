@@ -126,6 +126,14 @@ class ChatPair:
     def response(self) -> Optional[ResponseDict]:
         return self.chat_pair[1]
     
+    def prompt_string(self) -> str:
+        return self.chat_pair[0].prompt_string()
+    
+    def response_string(self) -> str:
+        if self.chat_pair[1] is None:
+            raise ValueError("No response is available.")
+        return self.chat_pair[1].message.content
+    
     def update_prompt(self, new_prompt: ChatSequence) -> 'ChatPair':
         self.chat_pair = (new_prompt, self.chat_pair[1])
         return self
@@ -197,37 +205,66 @@ class ChatConversation:
         self.conversation_history = updated_history   
         return self  
 
+    def get_last_responses(self, num: int = 1, all: Optional[bool] = False) -> List[str]:
+        if len(self.conversation_history) == 0:
+            raise ValueError("Conversation history is empty")
+        
+        if all:
+            return [pair.response_string() for pair in self.conversation_history]
+        
+        if num <= 0:
+            raise ValueError("'num' should be a positive integer")
+        
+        # Get the last 'num' message pairs
+        last_pairs = self.conversation_history[-num:]
+        
+        # Get the response string from each pair and return them as a list
+        return [pair.response_string() for pair in last_pairs]
+    
+    def get_last_prompts(self, num: int = 1, all: Optional[bool] = False) -> List[str]:
+        if len(self.conversation_history) == 0:
+            raise ValueError("Conversation history is empty")
+        
+        if all:
+            return [pair.prompt_string() for pair in self.conversation_history]
+        
+        if num <= 0:
+            raise ValueError("'num' should be a positive integer")
+        
+        # Get the last 'num' message pairs
+        last_pairs = self.conversation_history[-num:]
+        
+        # Get the prompt string from each pair and return them as a list
+        return [pair.prompt_string() for pair in last_pairs]
+
+    def get_last_prompt_response_pairs(self, num: int = 1, all: Optional[bool] = False) -> List[Tuple[str, str]]:
+        if len(self.conversation_history) == 0:
+            raise ValueError("Conversation history is empty")
+
+        # If 'all' is True or 'num' is greater than the conversation history length, return all the pairs
+        if all or num >= len(self.conversation_history):
+            return [(pair.prompt_string(), pair.response_string()) for pair in self.conversation_history]
+
+        # If 'num' is less than or equal to 0, raise a ValueError
+        if num <= 0:
+            raise ValueError("'num' should be a positive integer")
+
+        # Return the last 'num' prompt-response pairs
+        return [(pair.prompt_string(), pair.response_string()) for pair in self.conversation_history[-num:]]
+
+
     def display_conversation(self):
         role_to_color = {
-            "system": "red",
-            "user": "green",
-            "assistant": "blue",
-            "function": "magenta",
+            "response": "green",
+            "prompt": "blue",
         }
         for message_response_pair in self.conversation_history:
             prompt, response = message_response_pair
-            
-            messages = prompt.raw()
-            
-            for message in messages:
-                formatted_message = ""
-                if message["role"] == "system":
-                    formatted_message = f"system: {message['content']}\n"
-                elif message["role"] == "user":
-                    formatted_message = f"user: {message['content']}\n"
-                elif message["role"] == "assistant" and message.get("function_call"):
-                    formatted_message = f"assistant: {message['function_call']}\n"
-                elif message["role"] == "assistant" and not message.get("function_call"):
-                    formatted_message = f"assistant: {message['content']}\n"
-                elif message["role"] == "function":
-                    formatted_message = f"function ({message['name']}): {message['content']}\n"
-                
-                print(
-                    colored(
-                        formatted_message,
-                        role_to_color[message["role"]],
-                    )
+            print(
+                colored(
+                    f"Prompt: {prompt.prompt_string()} \n",
+                    role_to_color["prompt"],
                 )
+            )
                 
-            response_message = response.message
-            print(colored(f"Response: {response_message.content} \n\n", role_to_color[response_message.role]))
+            print(colored(f"Response: {response.message.content} \n\n", role_to_color["response"]))

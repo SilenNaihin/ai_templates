@@ -1,5 +1,4 @@
 from aitemplates.oai.utils.wrappers import retry_openai_api
-import logging
 import os
 from dotenv import load_dotenv
 
@@ -60,7 +59,7 @@ async def _throttled_acreate_chat_completion(
 
 
 async def async_create_chat_completion(
-    parallel_calls: ChatConversation,
+    messages: ChatConversation,
     model: str = "gpt-3.5-turbo",
     temperature: float = 0,
     max_tokens: Union[int, None] = None,
@@ -72,12 +71,11 @@ async def async_create_chat_completion(
     stop: Optional[str] = None,
     presence_penalty: Optional[float] = 0,
     frequency_penalty: Optional[float] = 0,
-    functions: Optional[FunctionsAvailable] = None
 ) -> ChatConversation:
     """Generate from OpenAI Chat Completion API asynchronously.
 
     Args:
-        parallel_calls (ChatConversation): List of full prompts to generate from.
+        messages (ChatConversation): List of full prompts to generate from.
         model (str, optional): Model configuration. Defaults to "gpt-3.5-turbo".
         temperature (float, optional): Temperature to use. Defaults to 0.
         max_tokens (Union[int, None], optional): Maximum number of tokens to generate. Defaults to None.
@@ -95,7 +93,7 @@ async def async_create_chat_completion(
         ChatConversation: List of generated responses and previous responses.
     """
     if keep_order and print_every:
-        logging.warning("print_every will do nothing since keep_order is True")
+        print("print_every will do nothing since keep_order is True")
     api_manager = ApiManager()
     openai.aiosession.set(ClientSession())
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
@@ -111,16 +109,13 @@ async def async_create_chat_completion(
         "frequency_penalty": frequency_penalty,
     }
     
-    if functions:
-        kwargs["functions"] = functions
-    
     async_responses = [
         _throttled_acreate_chat_completion(
             **kwargs,
             limiter=limiter,
             chat_pair=chat_pair,
         )
-        for chat_pair in parallel_calls.conversation_history
+        for chat_pair in messages.conversation_history
     ]
 
     responses = []
@@ -165,4 +160,4 @@ async def async_create_chat_completion(
 
     # Close the session
     await openai.aiosession.get().close()  # type: ignore
-    return parallel_calls.fill_conversation(responses)
+    return messages.fill_conversation(responses)

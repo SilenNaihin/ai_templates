@@ -6,12 +6,13 @@ aitemplates is a Python package designed to simplify and streamline your work wi
 
 ## Features
 
-- **Python Typing Support**: Enjoy the benefits of Python's dynamic typing system while using OpenAI API.
+- **Function Integration**: Quick and easy integration with OpenAI functions for automatic execution and error handling.
 - **Error Checking**: Automatically catch and handle errors during API calls.
 - **Usage Meter**: Keep track of your OpenAI API usage with a built-in metering system.
 - **ChromaDB Integration**: Work directly with ChromaDB from the aitemplates interface.
 - **Asynchronous Chat Completions**: Use the `-asnc` flag to run asynchronous chat completions. The built-in `print_every` option prints every time a completion finishes in parallel. If a list is passed into the `response_list` attribute, it updates that list as completions finish. If you'd like to maintain the order of your completions, pass in the `keep_order` boolean as `True`.
 - **Prompt Engineering Examples**: Get started quickly with included examples of prompt engineering techniques.
+- **Python Typing Support**: Enjoy the benefits of Python's dynamic typing system while using OpenAI API.
 
 ## Installation
 
@@ -43,13 +44,19 @@ For asynchronous chat completions, add the `-asnc` flag:
 aitemplates name_of_notebook -db -asnc
 ```
 
+For chat completions with function boilerplate add the `-func` flag (async do not support functions):
+
+```bash
+aitemplates name_of_notebook -db -func
+```
+
 ## Documentation
 
 The package includes example notebooks, which provide comprehensive guides and demonstrations of the functionalities provided by aitemplates. To access these notebooks, access or clone the repository at [https://github.com/SilenNaihin/ai_templates](https://github.com/SilenNaihin/ai_templates) and navigate to the `/notebooks` directory.
 
 Here are the available notebooks:
 
-- `oai_examples.ipynb`: Provides examples for the OpenAI API.
+- `oai_examples.ipynb`: Provides examples for the OpenAI API including functions.
 - `chroma_examples.ipynb`: Demonstrates usage of ChromaDB.
 - `prompt_engineering_example.ipynb`: A comprehensive guide on prompt engineering, including various techniques, usage of ChromaDB and the OpenAI library together.
 

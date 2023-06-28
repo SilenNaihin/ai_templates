@@ -6,18 +6,18 @@ OPEN_AI_CHAT_MODELS = {
     for info in [
         ChatModelInfo(
             name="gpt-3.5-turbo",
-            prompt_token_cost=0.00015,
+            prompt_token_cost=0.0015,
             completion_token_cost=0.002,
             max_tokens=4096,
         ),
         ChatModelInfo(
             name="gpt-3.5-turbo-0301",
-            prompt_token_cost=0.00015,
+            prompt_token_cost=0.0015,
             completion_token_cost=0.002,
             max_tokens=4096,
         ),ChatModelInfo(
             name="gpt-3.5-turbo-0613",
-            prompt_token_cost=0.00015,
+            prompt_token_cost=0.0015,
             completion_token_cost=0.002,
             max_tokens=4096,
         ),
@@ -41,6 +41,12 @@ OPEN_AI_CHAT_MODELS = {
         ),
         ChatModelInfo(
             name="gpt-4-0314",
+            prompt_token_cost=0.03,
+            completion_token_cost=0.06,
+            max_tokens=8192,
+        ),
+        ChatModelInfo(
+            name="gpt-4-0613",
             prompt_token_cost=0.03,
             completion_token_cost=0.06,
             max_tokens=8192,

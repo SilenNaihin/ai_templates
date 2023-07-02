@@ -19,6 +19,7 @@ dotenv_path = os.path.join(
 load_dotenv(dotenv_path)  # load environment variables from the .env file
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+model = os.getenv("model")
 
 if OPENAI_API_KEY is None:
     raise Exception("API key not found in environment variables")
@@ -29,7 +30,7 @@ openai.api_key = OPENAI_API_KEY
 @retry_openai_api()
 def create_chat_completion(
     messages: Union[ChatSequence, ChatConversation, Message, List[Message]],
-    model: str = "gpt-3.5-turbo-0613",
+    model: str = model or "gpt-3.5-turbo-0613",
     temperature: Optional[float] = 0,
     max_tokens: Optional[int] = None,
     top_p: Optional[float] = 1,

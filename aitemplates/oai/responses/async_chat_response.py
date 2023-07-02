@@ -18,6 +18,7 @@ dotenv_path = os.path.join(os.getcwd(), '.env')  # get the path to .env file in 
 load_dotenv(dotenv_path)  # load environment variables from the .env file
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+model = os.getenv("model")
 
 if OPENAI_API_KEY is None:
     raise Exception("API key not found in environment variables")
@@ -60,7 +61,7 @@ async def _throttled_acreate_chat_completion(
 
 async def async_create_chat_completion(
     messages: ChatConversation,
-    model: str = "gpt-3.5-turbo",
+    model: str = model or "gpt-3.5-turbo",
     temperature: float = 0,
     max_tokens: Union[int, None] = None,
     print_every: int = False,

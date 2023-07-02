@@ -8,8 +8,7 @@ from openai import Model
 from aitemplates.oai.types.models import OPEN_AI_MODELS
 from aitemplates.oai.types.Singleton import Singleton
 
-
-class ApiManager(metaclass=Singleton):
+class ApiManager():
     "Middleman class for tracking completion tokens and cost of API calls"
 
     def __init__(self):
@@ -94,3 +93,6 @@ class ApiManager(metaclass=Singleton):
             self.models = [model for model in all_models if "gpt" in model["id"]]
 
         return self.models
+
+class SingleApiManager(ApiManager, metaclass=Singleton):
+    pass

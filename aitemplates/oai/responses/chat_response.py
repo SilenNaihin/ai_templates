@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 import openai
-from aitemplates.oai.ApiManager import ApiManager
+from aitemplates.oai.ApiManager import SingleApiManager
 
 from aitemplates.oai.utils.wrappers import retry_openai_api
 from aitemplates.oai.types.chat import (
@@ -70,7 +70,7 @@ def create_chat_completion(
     else:
         kwarg_messages = messages.raw()
 
-    api_manager = ApiManager()
+    api_manager = SingleApiManager()
     kwargs = {
         "model": model,
         "messages": kwarg_messages,

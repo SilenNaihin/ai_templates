@@ -133,8 +133,8 @@ collection.add(
 
 def get_cell5_content(db, asnc, func):
     cell5_content = f"""\
-from aitemplates import ApiManager
+from aitemplates import SingleApiManager
 
-api_manager = ApiManager()
+api_manager = SingleApiManager()
 api_manager.total_cost"""
     return cell5_content

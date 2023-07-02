@@ -12,7 +12,7 @@ from tqdm.asyncio import tqdm_asyncio
 
 from aitemplates.oai.types.base import ResponseDict
 from aitemplates.oai.types.chat import ChatConversation, FunctionsAvailable, ChatPair
-from aitemplates.oai.ApiManager import ApiManager
+from aitemplates.oai.ApiManager import SingleApiManager
 
 dotenv_path = os.path.join(os.getcwd(), '.env')  # get the path to .env file in current working directory
 load_dotenv(dotenv_path)  # load environment variables from the .env file
@@ -94,7 +94,7 @@ async def async_create_chat_completion(
     """
     if keep_order and print_every:
         print("print_every will do nothing since keep_order is True")
-    api_manager = ApiManager()
+    api_manager = SingleApiManager()
     openai.aiosession.set(ClientSession())
     limiter = aiolimiter.AsyncLimiter(requests_per_minute)
     

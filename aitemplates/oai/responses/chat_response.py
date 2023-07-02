@@ -1,4 +1,4 @@
-from typing import Optional, Any, Union
+from typing import Optional, Any, Union, List
 import os
 from dotenv import load_dotenv
 
@@ -28,7 +28,7 @@ openai.api_key = OPENAI_API_KEY
 
 @retry_openai_api()
 def create_chat_completion(
-    messages: Union[ChatSequence, ChatConversation, Message],
+    messages: Union[ChatSequence, ChatConversation, Message, List[Message]],
     model: str = "gpt-3.5-turbo-0613",
     temperature: Optional[float] = 0,
     max_tokens: Optional[int] = None,
@@ -67,6 +67,10 @@ def create_chat_completion(
     elif isinstance(messages, Message):
         kwarg_messages = ChatSequence([messages]).raw()
         messages = ChatSequence([messages])
+    elif isinstance(messages, List):
+        kwarg_messages = ChatSequence(messages).raw()
+        messages = ChatSequence(messages)
+        kwarg_messages = messages.raw()
     else:
         kwarg_messages = messages.raw()
 

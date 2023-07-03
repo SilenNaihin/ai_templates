@@ -19,7 +19,7 @@ collection = chroma_client.create_collection(name="", embedding_function=embedde
     else:
         imports += ", create_chat_completion"
     if func:
-        imports += ", FunctionPair, FunctionsAvailable"
+        imports += ", FunctionPair, Functions"
         
     if db:
         imports += """
@@ -95,14 +95,14 @@ def func(property1: str) -> float:
 # match the description to the function
 function_pair1 = FunctionPair(func_desc, func)
 
-# add FunctionsAvailable dataclass for easy access
-functions_available = FunctionsAvailable([function_pair1])
+# add Functions dataclass for easy access
+functions_available = Functions([function_pair1])
 """
         
     if asnc:
         additional+=f"\nasync_response = await async_create_chat_completion(chat, keep_order=True)"
     else:
-        additional+=f"\ncompletion = create_chat_completion(sequence1{', functions=functions_available' if func else ''})"
+        additional+=f"\ncompletion = create_chat_completion(sequence1{', functions=functions_available, auto_call_func=True' if func else ''})"
 
     cell3_content = f"""\
 {additional}"""

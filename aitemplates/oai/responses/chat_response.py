@@ -8,7 +8,7 @@ from aitemplates.oai.ApiManager import SingleApiManager
 from aitemplates.oai.utils.wrappers import retry_openai_api
 from aitemplates.oai.types.chat import (
     ChatSequence,
-    FunctionsAvailable,
+    Functions,
     ChatConversation,
     Message,
 )
@@ -38,9 +38,10 @@ def create_chat_completion(
     stop: Optional[str] = None,
     presence_penalty: Optional[float] = 0,
     frequency_penalty: Optional[float] = 0,
-    functions: Optional[FunctionsAvailable] = None,
+    functions: Optional[Functions] = None,
     function_call: Optional[object] = None,
     send_object: bool = False,
+    auto_call_func: bool = False,
 ) -> Any:
     """Create a chat completion using the OpenAI API
 
@@ -54,7 +55,7 @@ def create_chat_completion(
         stop (str, optional): The sequence at which the generation will stop. Defaults to None.
         presence_penalty (float, optional): The presence penalty to use. Defaults to 0.
         frequency_penalty (float, optional): The frequency penalty to use. Defaults to 0.
-        functions (Optional[FunctionsAvailable], optional): The functions to use. Defaults to None.
+        functions (Optional[Functions], optional): The functions to use. Defaults to None.
         send_object (bool, optional): Whether to return the response object. Defaults to False.
 
     Returns:
@@ -116,8 +117,8 @@ def create_chat_completion(
 
     function_result = None
 
-    if response.choices[0].message.get("function_call"):
-        function_result = FunctionsAvailable.execute_function_call(
+    if response.choices[0].message.get("function_call") and auto_call_func:
+        function_result = Functions.execute_function_call(
             response.choices[0].message.function_call, function_pairs
         )
 

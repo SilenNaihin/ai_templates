@@ -6,22 +6,22 @@ from dataclasses import dataclass, field
 from math import ceil, floor
 from typing import List, Tuple, Optional, Union, Any
 
-from aitemplates.oai.types.functions import FunctionsAvailable, FunctionPair
+from aitemplates.oai.types.functions import Functions, FunctionPair
 from aitemplates.oai.types.base import Message, MessageRole, MessageDict, ResponseDict
 
 class ChatSequence:
     "Utility container for a chat sequence"
 
     messages: list[Message]
-    function_pairs: FunctionsAvailable
+    function_pairs: Functions
     
-    def __init__(self, messages_list: list[Message], function_pairs: Optional[Union[FunctionsAvailable, list[FunctionPair], FunctionPair]] = None):
+    def __init__(self, messages_list: list[Message], function_pairs: Optional[Union[Functions, list[FunctionPair], FunctionPair]] = None):
        self.messages = messages_list
        
        if function_pairs:
            self.function_pairs.set_function_pairs(function_pairs)
        else:
-           self.function_pairs = FunctionsAvailable([])
+           self.function_pairs = Functions([])
 
     def __getitem__(self, i: int):
         return self.messages[i]
@@ -158,9 +158,9 @@ class ChatConversation:
     
     conversation_history: List[ChatPair]
     # functions available to all prompts
-    function_pairs: FunctionsAvailable
+    function_pairs: Functions
             
-    def __init__(self, first_prompt: Union[ChatSequence, List[ChatSequence], List[ChatPair]], function_pairs: Optional[Union[FunctionsAvailable, list[FunctionPair], FunctionPair]] = None):
+    def __init__(self, first_prompt: Union[ChatSequence, List[ChatSequence], List[ChatPair]], function_pairs: Optional[Union[Functions, list[FunctionPair], FunctionPair]] = None):
         if isinstance(first_prompt, list):
             if isinstance(first_prompt[0], ChatSequence): # case if list[ChatSequence]
                 self.conversation_history = [ChatPair(chat_sequence, None) for chat_sequence in first_prompt]
@@ -172,7 +172,7 @@ class ChatConversation:
         if function_pairs:
             self.function_pairs.set_function_pairs(function_pairs)
         else:
-            self.function_pairs = FunctionsAvailable([])
+            self.function_pairs = Functions([])
     
     def __getitem__(self, i: int) -> ChatPair:
         """Allows indexing into the conversation history.

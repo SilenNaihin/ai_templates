@@ -36,7 +36,7 @@ class FunctionPair:
         return self
    
 @dataclass
-class FunctionsAvailable:
+class Functions:
     function_pairs: List[FunctionPair]
 
     def __getitem__(self, i: int) -> FunctionPair:
@@ -48,8 +48,8 @@ class FunctionsAvailable:
     def __len__(self) -> int:
         return len(self.function_pairs)
 
-    def __add__(self, other: 'FunctionsAvailable') -> 'FunctionsAvailable':
-        return FunctionsAvailable(self.function_pairs + other.function_pairs)
+    def __add__(self, other: 'Functions') -> 'Functions':
+        return Functions(self.function_pairs + other.function_pairs)
     
     def get_function_defs(self) -> List[object]:
         return [definition for definition, _ in self.function_pairs]
@@ -57,16 +57,16 @@ class FunctionsAvailable:
     def get_functions(self) -> List[Callable[..., Any]]:
         return [cast(Callable[..., Any], function) for _, function in self.function_pairs]
 
-    def add_function_pairs(self, functions: Union[FunctionPair, List[FunctionPair], 'FunctionsAvailable']):
-        if isinstance(functions, FunctionsAvailable):
+    def add_function_pairs(self, functions: Union[FunctionPair, List[FunctionPair], 'Functions']):
+        if isinstance(functions, Functions):
             self.function_pairs.extend(functions.function_pairs)
         elif isinstance(functions, list):
             self.function_pairs.extend(functions)
         else:
             self.function_pairs.append(functions)
 
-    def set_function_pairs(self, functions: Union[FunctionPair, List[FunctionPair], 'FunctionsAvailable']):
-        if isinstance(functions, FunctionsAvailable):
+    def set_function_pairs(self, functions: Union[FunctionPair, List[FunctionPair], 'Functions']):
+        if isinstance(functions, Functions):
             self.function_pairs = functions.function_pairs
         elif isinstance(functions, list):
             self.function_pairs = functions
@@ -76,14 +76,14 @@ class FunctionsAvailable:
     def append(self, function_pair: FunctionPair):
         return self.function_pairs.append(function_pair)
 
-    def extend(self, function_pairs: List[FunctionPair] | FunctionsAvailable):
-        if isinstance(function_pairs, FunctionsAvailable):
+    def extend(self, function_pairs: List[FunctionPair] | Functions):
+        if isinstance(function_pairs, Functions):
             self.function_pairs.extend(function_pairs.function_pairs)
         else:
             self.function_pairs.extend(function_pairs)
     
     @staticmethod
-    def execute_function_call(message: FunctionCall, functions: 'FunctionsAvailable') -> Any:
+    def execute_function_call(message: FunctionCall, functions: 'Functions') -> Any:
         function_name = message.name
         function_args = eval(message.arguments)
         

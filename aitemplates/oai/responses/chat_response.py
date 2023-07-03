@@ -134,7 +134,10 @@ def create_chat_completion(
             messages.conversation_history[-1].update_response(response)
 
     if send_object:
-        return response, function_result if function_result else response
+        if function_result:
+            return response, function_result
+        else:
+            return response
     elif n and n > 1:
         return response.choices
     elif function_result:

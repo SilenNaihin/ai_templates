@@ -74,20 +74,20 @@ def get_cell3_content(db, asnc, func):
     
     if func:
         additional+="""\
-func_desc = {
-        "name": "func_name",
-        "description": "",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "property1": {
-                    "type": "string",
-                    "description": "",
-                },
-            },
-            "required": ["property1"]
-        },
+from aitemplates import FunctionDef
+
+stock_price = FunctionDef(
+    name="func_name",
+    description="Use this function to get the price of a stock.",
+    parameters={
+        "property1": FunctionDef.ParameterSpec(
+            name="property1",
+            type="string",
+            description="",
+            required=True
+        )
     }
+)
     
 def func(property1: str) -> float:
     return 0.0

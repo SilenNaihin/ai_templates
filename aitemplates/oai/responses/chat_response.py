@@ -62,7 +62,7 @@ def create_chat_completion(
         Any: The response from the chat completion.
     """
     kwarg_messages = None
-
+    
     # we set it to the last sequence which the response is None
     if isinstance(messages, ChatConversation):
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
@@ -90,10 +90,10 @@ def create_chat_completion(
     }
 
     function_pairs = None
-
+    
     # if it's a ChatSequence being passed in
     if messages.function_pairs:
-        kwargs["functions"] = messages.function_pairs.get_function_defs()
+        kwargs["functions"] = messages.function_pairs.get_function_defs(dict=True)
         function_pairs = messages.function_pairs
     elif functions:
         function_pairs = functions
@@ -103,12 +103,12 @@ def create_chat_completion(
             existing_function_names = {func["name"] for func in kwargs["functions"]}
             new_functions = [
                 func
-                for func in functions.get_function_defs()
+                for func in functions.get_function_defs(dict=True)
                 if func["name"] not in existing_function_names
             ]
             kwargs["functions"].extend(new_functions)
         else:
-            kwargs["functions"] = functions.get_function_defs()
+            kwargs["functions"] = functions.get_function_defs(dict=True)
 
     if function_call:
         kwargs["function_call"] = function_call

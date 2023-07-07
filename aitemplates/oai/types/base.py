@@ -41,7 +41,7 @@ class ResponseDict:
         return self.message
     
     @staticmethod
-    def convert_to_response_dict(response: Union[dict, tuple]) -> Union['ResponseDict', (ResponseDict, Any)]:
+    def convert_to_response_dict(response: Union[dict, tuple]) -> Union['ResponseDict', tuple[ResponseDict, Any]]:
         if response is not None and isinstance(response, tuple):
             # if it's a tuple that means a function was called
             return (ResponseDict(response[0]), response[1])
@@ -49,7 +49,7 @@ class ResponseDict:
             return ResponseDict(response)
     
     @staticmethod
-    def convert_to_raw(response_dict: ResponseDict) -> MessageDict:
+    def convert_to_raw(response_dict: ResponseDict) -> MessageDict| tuple[MessageDict, Any]:
         if response_dict is not None and isinstance(response_dict, tuple):
             # if it's a tuple that means a function was called
             return (response_dict.message.raw(), response_dict[1])

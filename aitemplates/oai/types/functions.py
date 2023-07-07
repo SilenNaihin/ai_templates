@@ -2,15 +2,51 @@ from __future__ import annotations
 
 
 from dataclasses import dataclass
-from typing import List, Union, Tuple, Any, Callable, cast
+from typing import List, Union, Tuple, Any, Callable, cast, Optional
 from aitemplates.oai.types.base import FunctionCall
 
 from jsonschema import validate
+
+@dataclass
+class FunctionDef:
+    """Represents a "function" in OpenAI, which is mapped to a Command in Auto-GPT"""
+
+    name: str
+    description: str
+    parameters: dict[str, ParameterSpec]
+
+    @dataclass
+    class ParameterSpec:
+        name: str
+        type: str
+        description: Optional[str]
+        required: bool = False
+
+    @property
+    def __dict__(self):
+        """Output an OpenAI-consumable function specification"""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    param.name: {
+                        "type": param.type,
+                        "description": param.description,
+                    }
+                    for param in self.parameters.values()
+                },
+                "required": [
+                    param.name for param in self.parameters.values() if param.required
+                ],
+            },
+        }
     
 class FunctionPair:
-    function_pairs: Tuple[object, Callable[..., Any]]
+    function_pairs: Tuple[FunctionDef, Callable[..., Any]]
     
-    def __init__(self, function_def: object, function: Callable[..., Any]) -> None:
+    def __init__(self, function_def: FunctionDef, function: Callable[..., Any]) -> None:
         self.function_pairs = (function_def, function)
     
     def __iter__(self):
@@ -27,7 +63,7 @@ class FunctionPair:
     def call(self, *args, **kwargs) -> Any:
         return self.function.call(*args, **kwargs)
 
-    def update__def(self, new_def: object) -> 'FunctionPair':
+    def update__def(self, new_def: FunctionDef) -> 'FunctionPair':
         self.function_pairs = (new_def, self.function_pairs[1])
         return self
 
@@ -51,8 +87,10 @@ class Functions:
     def __add__(self, other: 'Functions') -> 'Functions':
         return Functions(self.function_pairs + other.function_pairs)
     
-    def get_function_defs(self) -> List[object]:
-        return [definition for definition, _ in self.function_pairs]
+    def get_function_defs(self, dict: bool = False) -> List[object]:
+        if dict:
+            return [fp.definition.__dict__ for fp in self.function_pairs]
+        return [fp.definition for fp in self.function_pairs]
     
     def get_functions(self) -> List[Callable[..., Any]]:
         return [cast(Callable[..., Any], function) for _, function in self.function_pairs]
@@ -88,7 +126,7 @@ class Functions:
         function_args = eval(message.arguments)
         
         # get the correct function
-        target_function = next((fp.function for fp in functions.function_pairs if fp.definition["name"] == function_name), None)
+        target_function = next((fp.function for fp in functions.function_pairs if fp.definition.__dict__["name"] == function_name), None)
         
         if target_function:
             results = target_function(**function_args)

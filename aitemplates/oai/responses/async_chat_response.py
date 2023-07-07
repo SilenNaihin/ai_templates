@@ -11,7 +11,7 @@ from aiohttp import ClientSession
 from tqdm.asyncio import tqdm_asyncio
 
 from aitemplates.oai.types.base import ResponseDict
-from aitemplates.oai.types.chat import ChatConversation, Functions, ChatPair
+from aitemplates.oai.types.chat import ChatConversation, ChatPair
 from aitemplates.oai.ApiManager import SingleApiManager
 
 dotenv_path = os.path.join(os.getcwd(), '.env')  # get the path to .env file in current working directory

@@ -8,10 +8,10 @@ from aitemplates.oai.ApiManager import SingleApiManager
 from aitemplates.oai.utils.wrappers import retry_openai_api
 from aitemplates.oai.types.chat import (
     ChatSequence,
-    Functions,
     ChatConversation,
     Message,
 )
+from aitemplates.oai.types.functions import FunctionDef, Functions
 
 dotenv_path = os.path.join(
     os.getcwd(), ".env"
@@ -29,7 +29,7 @@ openai.api_key = OPENAI_API_KEY
 
 @retry_openai_api()
 def create_chat_completion(
-    messages: Union[ChatSequence, ChatConversation, Message, List[Message]],
+    messages: Union[ChatSequence, ChatConversation, Message, List[Message], str],
     model: str = model or "gpt-3.5-turbo-0613",
     temperature: Optional[float] = 0,
     max_tokens: Optional[int] = None,
@@ -38,7 +38,7 @@ def create_chat_completion(
     stop: Optional[str] = None,
     presence_penalty: Optional[float] = 0,
     frequency_penalty: Optional[float] = 0,
-    functions: Optional[Functions] = None,
+    functions: Optional[Functions] | Optional[list[FunctionDef]] = None,
     function_call: Optional[object] = None,
     send_object: bool = False,
     auto_call_func: bool = False,
@@ -63,8 +63,9 @@ def create_chat_completion(
     """
     kwarg_messages = None
     
-    # we set it to the last sequence which the response is None
-    if isinstance(messages, ChatConversation):
+    if isinstance(messages, str):
+        messages = Message("system", messages)
+    elif isinstance(messages, ChatConversation): # we set it to the last sequence which the response is None
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
     elif isinstance(messages, Message):
         kwarg_messages = ChatSequence([messages]).raw()
@@ -96,19 +97,22 @@ def create_chat_completion(
         kwargs["functions"] = messages.function_pairs.get_function_defs(dict=True)
         function_pairs = messages.function_pairs
     elif functions:
-        function_pairs = functions
-        # if you're passing in global functions from a ChatConversation sequential call
-        if "functions" in kwargs:
-            # add functions not in the existing functions array
-            existing_function_names = {func["name"] for func in kwargs["functions"]}
-            new_functions = [
-                func
-                for func in functions.get_function_defs(dict=True)
-                if func["name"] not in existing_function_names
-            ]
-            kwargs["functions"].extend(new_functions)
+        if isinstance(functions[0], FunctionDef):
+            kwargs["functions"] = [func.__dict__ for func in functions]
         else:
-            kwargs["functions"] = functions.get_function_defs(dict=True)
+            function_pairs = functions
+            # if you're passing in global functions from a ChatConversation sequential call
+            if "functions" in kwargs:
+                # add functions not in the existing functions array
+                existing_function_names = {func["name"] for func in kwargs["functions"]}
+                new_functions = [
+                    func
+                    for func in functions.get_function_defs(dict=True)
+                    if func["name"] not in existing_function_names
+                ]
+                kwargs["functions"].extend(new_functions)
+            else:
+                kwargs["functions"] = functions.get_function_defs(dict=True)
 
     if function_call:
         kwargs["function_call"] = function_call

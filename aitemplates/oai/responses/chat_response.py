@@ -93,7 +93,7 @@ def create_chat_completion(
     function_pairs = None
     
     # if it's a ChatSequence being passed in
-    if messages.function_pairs:
+    if hasattr(messages, 'function_pairs'):
         kwargs["functions"] = messages.function_pairs.get_function_defs(dict=True)
         function_pairs = messages.function_pairs
     elif functions:

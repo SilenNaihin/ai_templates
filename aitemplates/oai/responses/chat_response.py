@@ -38,7 +38,7 @@ def create_chat_completion(
     stop: Optional[str] = None,
     presence_penalty: Optional[float] = 0,
     frequency_penalty: Optional[float] = 0,
-    functions: Optional[Functions] | Optional[list[FunctionDef]] = None,
+    functions: Union[Optional[Functions], Optional[list[FunctionDef]]] = None,
     function_call: Optional[object] = None,
     send_object: bool = False,
     auto_call_func: bool = False,
@@ -65,6 +65,7 @@ def create_chat_completion(
     
     if isinstance(messages, str):
         messages = Message("system", messages)
+        kwarg_messages = [messages.raw()]
     elif isinstance(messages, ChatConversation): # we set it to the last sequence which the response is None
         kwarg_messages = messages.conversation_history[-1].prompt.raw()
     elif isinstance(messages, Message):
@@ -121,14 +122,18 @@ def create_chat_completion(
 
     function_result = None
 
-    if response.choices[0].message.get("function_call") and auto_call_func:
-        function_result = Functions.execute_function_call(
-            response.choices[0].message.function_call, function_pairs
-        )
+    if response.choices[0].message.get("function_call"):
+        if auto_call_func:
+            function_result = Functions.execute_function_call(
+                response.choices[0].message.function_call, function_pairs
+            )
+        else: 
+            function_result = response.choices[0].message.function_call
 
     api_manager.update_cost(
         response.usage.prompt_tokens, response.usage.completion_tokens, response.model
     )
+    
 
     if isinstance(messages, ChatConversation):
         if function_result:

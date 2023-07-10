@@ -94,13 +94,14 @@ def create_chat_completion(
     process_functions = {"function_defs": None, "function_call": None}
     function_pairs = None
     
-    if functions or hasattr(messages, 'function_pairs'):
+    if functions or (hasattr(messages, 'function_pairs') and len(messages.function_pairs)):
         process_functions = Functions.ensure_unique_functions(messages, functions)
-        function_pairs = process_functions["function_pairs"]
-        
+    
+    if process_functions.get("function_pairs"):
+        function_pairs = process_functions.get("function_pairs")
 
-    if process_functions["function_defs"]:
-        kwargs["functions"] = process_functions["function_defs"]
+    if process_functions.get("function_defs"):
+        kwargs["functions"] = process_functions.get("function_defs")
 
     if function_call:
         kwargs["function_call"] = function_call

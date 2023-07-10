@@ -134,3 +134,29 @@ class Functions:
             results = f"Error: function {function_name} does not exist"
             
         return results
+    
+    @staticmethod
+    def ensure_unique_functions(messages, functions: Union[List[FunctionDef], List[Functions]]) -> dict:
+        function_pairs = []
+        temp_func_defs = {}
+        
+        # if it's a ChatSequence being passed in
+        if hasattr(messages, 'function_pairs'):
+            for func_def in messages.function_pairs.get_function_defs(dict=True):
+                temp_func_defs[func_def['name']] = func_def
+            function_pairs.extend(messages.function_pairs)
+            
+        if functions:
+            if isinstance(functions[0], FunctionDef):
+                for func in functions:
+                    temp_func_defs[func.name] = func.__dict__
+            elif isinstance(functions[0], Functions):
+                for func_def in functions.get_function_defs(dict=True):
+                    temp_func_defs[func_def['name']] = func_def
+                function_pairs.extend(functions.function_pairs)
+
+        if temp_func_defs:
+            return {
+                "function_defs": list(temp_func_defs.values()),
+                "function_pairs": function_pairs
+            }

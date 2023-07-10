@@ -91,29 +91,16 @@ def create_chat_completion(
         "frequency_penalty": frequency_penalty,
     }
 
+    process_functions = {"function_defs": None, "function_call": None}
     function_pairs = None
     
-    # if it's a ChatSequence being passed in
-    if hasattr(messages, 'function_pairs'):
-        kwargs["functions"] = messages.function_pairs.get_function_defs(dict=True)
-        function_pairs = messages.function_pairs
-    elif functions:
-        if isinstance(functions[0], FunctionDef):
-            kwargs["functions"] = [func.__dict__ for func in functions]
-        else:
-            function_pairs = functions
-            # if you're passing in global functions from a ChatConversation sequential call
-            if "functions" in kwargs:
-                # add functions not in the existing functions array
-                existing_function_names = {func["name"] for func in kwargs["functions"]}
-                new_functions = [
-                    func
-                    for func in functions.get_function_defs(dict=True)
-                    if func["name"] not in existing_function_names
-                ]
-                kwargs["functions"].extend(new_functions)
-            else:
-                kwargs["functions"] = functions.get_function_defs(dict=True)
+    if functions or hasattr(messages, 'function_pairs'):
+        process_functions = Functions.ensure_unique_functions(messages, functions)
+        function_pairs = process_functions["function_pairs"]
+        
+
+    if process_functions["function_defs"]:
+        kwargs["functions"] = process_functions["function_defs"]
 
     if function_call:
         kwargs["function_call"] = function_call
@@ -123,7 +110,7 @@ def create_chat_completion(
     function_result = None
 
     if response.choices[0].message.get("function_call"):
-        if auto_call_func:
+        if auto_call_func and function_pairs:
             function_result = Functions.execute_function_call(
                 response.choices[0].message.function_call, function_pairs
             )

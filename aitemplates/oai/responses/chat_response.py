@@ -110,13 +110,10 @@ def create_chat_completion(
 
     function_result = None
 
-    if response.choices[0].message.get("function_call"):
-        if auto_call_func and function_pairs:
-            function_result = Functions.execute_function_call(
-                response.choices[0].message.function_call, function_pairs
-            )
-        else: 
-            function_result = response.choices[0].message.function_call
+    if response.choices[0].message.get("function_call") and auto_call_func and function_pairs:
+        function_result = Functions.execute_function_call(
+            response.choices[0].message.function_call, function_pairs
+        )
 
     api_manager.update_cost(
         response.usage.prompt_tokens, response.usage.completion_tokens, response.model

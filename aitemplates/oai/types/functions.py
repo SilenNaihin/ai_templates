@@ -150,7 +150,7 @@ class Functions:
             if isinstance(functions[0], FunctionDef):
                 for func in functions:
                     temp_func_defs[func.name] = func.__dict__
-            elif isinstance(functions[0], Functions):
+            elif isinstance(functions, Functions):
                 for func_def in functions.get_function_defs(dict=True):
                     temp_func_defs[func_def['name']] = func_def
                 function_pairs.extend(functions.function_pairs)
